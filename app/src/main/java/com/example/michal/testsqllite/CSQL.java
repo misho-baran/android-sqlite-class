@@ -36,6 +36,8 @@ public class CSQL extends SQLiteOpenHelper {
 
     private static String err_msg = "";
 
+    private SQLiteDatabase db_obj = null;
+
     //constructor
     public CSQL(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -57,6 +59,31 @@ public class CSQL extends SQLiteOpenHelper {
             e.printStackTrace();
         }
     }
+
+    private boolean open_db(boolean readOnly) {
+
+        close_db();
+
+        if(readOnly) {
+            db_obj = this.getReadableDatabase();
+        }else{
+            db_obj = this.getWritableDatabase();
+        }
+
+        if(db_obj.isOpen()) {
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    private void close_db() {
+        if(db_obj.isOpen()) {
+            db_obj.close();
+        }
+
+    }
+
 
     private boolean check_exist_data(String[] name_table, String[] names){
         return false;
@@ -94,16 +121,28 @@ public class CSQL extends SQLiteOpenHelper {
         }
     }
 
-    private void delete_data(){
+    private boolean delete_data(String name_table, String where_clause, String[] where_args){
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        int ret = db.delete(name_table, where_clause, where_args);
+        db.close();
+
+        if(ret > 0){
+            return true;
+        }else{
+            return false;
+        }
 
     }
+
+
 
     private String[] load_data_once(String name_table, String[] return_names, String[] where_names, String[] where_values ){
 
         String[] str_return = { };
         Cursor cursor = null;
         int ValueColumneIndex = 0;
-
+/*
         SQLiteDatabase db = this.getReadableDatabase();
 
         if(!db.isOpen()) {
@@ -135,7 +174,7 @@ public class CSQL extends SQLiteOpenHelper {
         }
         cursor.close();
         db.close();
-
+*/
         return str_return;
 
     }
