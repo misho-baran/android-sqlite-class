@@ -84,14 +84,38 @@ public class CSQL extends SQLiteOpenHelper {
 
     }
 
+    private boolean delete_data(String name_table, String where_clause, String[] where_args){
 
-    private boolean check_exist_data(String[] name_table, String[] names){
-        return false;
+        if (!db_obj.isOpen() || db_obj.isReadOnly() )
+            open_db(false);
+
+        int ret = db_obj.delete(name_table, where_clause, where_args);
+
+        if(ret > 0){
+            return true;
+        }else{
+            return false;
+        }
+
     }
 
+    private boolean insert_data(String name_table, String[] names_columns, String[] values) {
+
+        db_obj.insert(name_table,);
+    }
+
+    private boolean update_date() {
+
+    }
+
+    private Cursor select_data(){
+
+    }
+
+
     private boolean import_data(String name_table, String[] names, String[] values, boolean update_values) {
-/*
-        if(values == null || values.size() < 0)
+
+        if( (values == null) || (names.length < 1) || (values.length < 1) )
             return false;
 
         boolean is_exist_data = check_exist_data(name_table, names);
@@ -100,7 +124,7 @@ public class CSQL extends SQLiteOpenHelper {
             return false;
         }
 
-        SQLiteDatabase db = this.getWritableDatabase();
+        open_db(false);
         long id_ret = 0;
 
         if(is_exist_data) {
@@ -116,24 +140,16 @@ public class CSQL extends SQLiteOpenHelper {
 
         if(id_ret >= 0) {
             return true;
-        }else*/{
-            return false;
-        }
-    }
-
-    private boolean delete_data(String name_table, String where_clause, String[] where_args){
-
-        SQLiteDatabase db = this.getWritableDatabase();
-        int ret = db.delete(name_table, where_clause, where_args);
-        db.close();
-
-        if(ret > 0){
-            return true;
         }else{
             return false;
         }
-
     }
+
+    private boolean check_exist_data(String[] name_table, String[] names){
+        return false;
+    }
+
+
 
 
 
