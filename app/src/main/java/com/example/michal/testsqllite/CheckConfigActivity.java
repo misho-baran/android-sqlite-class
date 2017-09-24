@@ -58,8 +58,12 @@ public class CheckConfigActivity extends AppCompatActivity  implements View.OnCl
             case R.id.btn_save:
                 String txt_input = editTxt_input.getText().toString();
                 sql_obj.save_config("message",txt_input);
-                editTxt_output.setText(txt_input);
-                editTxt_input.setText("");
+                if(sql_obj.check_sql_error()) {
+                    editTxt_output.setText(sql_obj.get_sql_error());
+                }else {
+                    editTxt_output.setText(txt_input);
+                    editTxt_input.setText("");
+                }
                 break;
 
             case R.id.btn_load:

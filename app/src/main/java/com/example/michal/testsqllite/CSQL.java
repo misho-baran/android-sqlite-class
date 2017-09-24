@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.security.InvalidKeyException;
@@ -21,7 +22,9 @@ import static android.R.attr.name;
 
 public class CSQL extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 2;
+    private static String err_msg = "";
+    private SQLiteDatabase db_obj = null;
+    private static final int DATABASE_VERSION = 3;
     private static final String DATABASE_NAME = "sqltest.db";
 
     private static final String SQL_CREATE_TABLES =
@@ -34,9 +37,6 @@ public class CSQL extends SQLiteOpenHelper {
             "DROP TABLE IF EXISTS app_config;" +
             "DROP TABLE IF EXISTS app_users;";
 
-    private static String err_msg = "";
-
-    private SQLiteDatabase db_obj = null;
 
     //constructor
     public CSQL(Context context) {
@@ -64,11 +64,17 @@ public class CSQL extends SQLiteOpenHelper {
 
         close_db();
 
-        if(readOnly) {
-            db_obj = this.getReadableDatabase();
-        }else{
-            db_obj = this.getWritableDatabase();
+        try {
+            if(readOnly) {
+                db_obj = this.getReadableDatabase();
+            }else{
+                db_obj = this.getWritableDatabase();
+            }
+        }catch (SQLiteException ex){
+            add_err_msg(ex.getMessage());
+            return false;
         }
+
 
         if(db_obj.isOpen()) {
             return true;
@@ -78,7 +84,7 @@ public class CSQL extends SQLiteOpenHelper {
     }
 
     private void close_db() {
-        if(db_obj.isOpen()) {
+        if(db_obj != null && db_obj.isOpen() ) {
             db_obj.close();
         }
 
@@ -90,6 +96,9 @@ public class CSQL extends SQLiteOpenHelper {
         if (!db_obj.isOpen() || db_obj.isReadOnly() )
             open_db(false);
 
+        if(check_sql_error())
+            return false;
+
         int ret = db_obj.delete(name_table, where_clause, where_args);
 
         if(ret < 1){
@@ -99,123 +108,79 @@ public class CSQL extends SQLiteOpenHelper {
         return false;
     }
 
-    private boolean insert_update_data(String name_table, ContentValues values){
-        return insert_update_data( name_table, null, null, values);
+    private boolean insert_update_data(String name_table, ContentValues values) {
+        return insert_update_data( name_table, null, null, values, false);
     }
 
     private boolean insert_update_data(String name_table, String where_clause,
-                                       String[] where_args, ContentValues values) {
+                                       String[] where_args, ContentValues values, boolean unique_data) {
 
-        if( (values.size() < 1)  || name_table.isEmpty())
+        open_db(false);
+
+        if( (values.size() < 1)  || name_table.isEmpty() || check_sql_error())
             return false;
 
-        //insert data
-        long ret_val = db_obj.insert(name_table, null, values);
+        long return_val = 0;
+        if( (where_clause == null || where_args == null) && (!unique_data) ) {
+            //insert data
+            long ret_val = db_obj.insert(name_table, null, values);
 
-        if(ret_val < 0) {
-            return false;
+        }else{
+            boolean is_exist_data = check_exist_data(name_table, where_clause, where_args);
+            if(check_sql_error()) return false;
+
+            if(is_exist_data) {
+                //update data
+                long ret_val = db_obj.update(name_table, values, where_clause, where_args);
+            }else{
+                //insert data
+                long ret_val = db_obj.insert(name_table, null, values);
+            }
         }
 
-        //update data
-        long ret_val = db_obj.update(name_table, values, where_clause,where_args);
-
-        if(ret_val < 0) {
+        if(return_val < 0 || check_sql_error()) {
             return false;
         }
-
 
         return true;
     }
 
 
-    private Cursor select_data(){
+    private boolean check_exist_data(String name_table, String where_clause, String[] where_args) {
 
-    }
+        Cursor cursor = select_data(name_table, null, where_clause, where_args, "1", null);
 
-
-    private boolean import_data(String name_table, String[] names, String[] values, boolean update_values) {
-
-        if( (values == null) || (names.length < 1) || (values.length < 1) )
-            return false;
-
-        boolean is_exist_data = check_exist_data(name_table, names);
-
-        if(!update_values && is_exist_data){
-            return false;
-        }
-
-        open_db(false);
-        long id_ret = 0;
-
-        if(is_exist_data) {
-            values.put("name",name);
-            values.put("value",value);
-            id_ret = db.insert(name_table, null, values);
-        }else{
-            values.put("value",value);
-            id_ret = db.update(name_table,values,"name='"+name+"'",null);
-            db_obj.up
-
-        }
-        db.close();
-
-        if(id_ret >= 0) {
+        if(cursor.getCount() > 0){
+            cursor.close();
             return true;
-        }else{
+        }else {
+            cursor.close();
             return false;
         }
+
+
     }
 
-    private boolean check_exist_data(String[] name_table, String[] names){
-        return false;
-    }
+    private Cursor select_data(String name_table, String[] name_columns, String where_clause, String[] where_args, String limit_number, String orderBy) {
 
+        if (!db_obj.isOpen() || !db_obj.isReadOnly() )
+            open_db(true);
 
-
-
-
-    private String[] load_data_once(String name_table, String[] return_names, String[] where_names, String[] where_values ){
-
-        String[] str_return = { };
         Cursor cursor = null;
-        int ValueColumneIndex = 0;
-/*
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        if(!db.isOpen()) {
-            err_msg = "Error: DB is not opened.";
-            return str_return;
+        try{
+            cursor = db_obj.query(name_table, name_columns, where_clause, where_args, null, null, orderBy  );
+        }catch(SQLiteException ex){
+            add_err_msg(ex.getMessage());
+            cursor = null;
+            close_db();
         }
 
-        String[] tableColumns = new String[] { "value" };
-        String whereClause = "name = ?";
-        String[] whereArgs = new String[] { name };
-        String orderBy = "id_config";
-
-        try {
-            //cursor = db.rawQuery("SELECT value FROM app_config WHERE name='" + name + "' LIMIT 1;", null);
-            cursor = db.query("app_config",tableColumns,whereClause,whereArgs,null,null,orderBy);
-            ValueColumneIndex = cursor.getColumnIndex("value");
-        }catch(android.database.sqlite.SQLiteException ex){
-            err_msg = ex.getMessage();
-            db.close();
-            return str_return;
-        }
-
-
-        if(cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            str_return = cursor.getString(ValueColumneIndex);
-        }else{
-            str_return = "";
-        }
-        cursor.close();
-        db.close();
-*/
-        return str_return;
-
+        return cursor;
     }
 
+    private void add_err_msg(String message){
+        err_msg += message;
+    }
 
     public boolean check_sql_error() {
         if(err_msg.isEmpty()) { return false; }else{ return true; }
@@ -229,75 +194,59 @@ public class CSQL extends SQLiteOpenHelper {
         return err_msg;
     }
 
+    public boolean save_config(String name_config, String value_config) {
 
-    public boolean save_config(String name, String value) {
-
-        String check_conf = load_config(name);
-        SQLiteDatabase db = this.getWritableDatabase();
+        String name_table = "app_config";
+        String where_clause = "name=?";
+        String[] where_args = { name_config };
         ContentValues cont_values = new ContentValues();
-        long id_ret = 0;
+        cont_values.put("name",name_config);
+        cont_values.put("value",value_config);
+        boolean return_value = false;
+        clean_sql_error();
 
-        if(check_conf.isEmpty()) {
-            cont_values.put("name",name);
-            cont_values.put("value",value);
-            id_ret = db.insert("app_config", null, cont_values);
-        }else{
-            cont_values.put("value",value);
-            id_ret = db.update("app_config",cont_values,"name='"+name+"'",null);
+        if(name_config.isEmpty() || value_config.isEmpty()) {
+            add_err_msg("Config name or value is Empty!");
+            return return_value;
         }
-        db.close();
 
-        if(id_ret >= 0) {
-            return true;
-        }else{
-            return false;
-        }
+        return_value = insert_update_data(name_table, where_clause, where_args , cont_values, true );
+        close_db();
+
+        if(check_sql_error())
+            return return_value;
+
+        return return_value;
     }
 
-    public String load_config(String name) {
-        String str_return = "";
+    public String load_config(String name_config) {
+
         Cursor cursor = null;
-        int ValueColumneIndex = 0;
+        String str_return = "";
+        int valueColumneIndex = 0;
+        String name_table = "app_config";
+        String where_clause = "name=?";
+        String[] name_columns = { "value" };
+        String[] where_args = { name_config };
 
-        SQLiteDatabase db = this.getReadableDatabase();
+        clean_sql_error();
+        cursor = select_data(name_table, name_columns, where_clause, where_args, "1", null);
 
-        if(!db.isOpen()) {
-            err_msg = "Error: DB is not opened.";
+        if(check_sql_error())
             return "";
-        }
 
-        String[] tableColumns = new String[] { "value" };
-        String whereClause = "name = ?";
-        String[] whereArgs = new String[] { name };
-        String orderBy = "id_config";
-
-        try {
-            //cursor = db.rawQuery("SELECT value FROM app_config WHERE name='" + name + "' LIMIT 1;", null);
-            cursor = db.query("app_config",tableColumns,whereClause,whereArgs,null,null,orderBy);
-            ValueColumneIndex = cursor.getColumnIndex("value");
-        }catch(android.database.sqlite.SQLiteException ex){
-            err_msg = ex.getMessage();
-            db.close();
-            return "";
-        }
-
-
-        if(cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            str_return = cursor.getString(ValueColumneIndex);
-        }else{
-            str_return = "";
-        }
-        cursor.close();
-        db.close();
+        valueColumneIndex = cursor.getColumnIndex("value");
+        str_return = cursor.getString(valueColumneIndex);
+        //cursor.close();
+        close_db();
 
         return str_return;
     }
 
     public void delete_db() {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL(SQL_DELETE_ENTRIES);
-        db.close();
+        open_db(false);
+        db_obj.execSQL(SQL_DELETE_ENTRIES);
+        close_db();
     }
 
     @Override
