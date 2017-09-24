@@ -84,6 +84,7 @@ public class CSQL extends SQLiteOpenHelper {
 
     }
 
+
     private boolean delete_data(String name_table, String where_clause, String[] where_args){
 
         if (!db_obj.isOpen() || db_obj.isReadOnly() )
@@ -91,22 +92,41 @@ public class CSQL extends SQLiteOpenHelper {
 
         int ret = db_obj.delete(name_table, where_clause, where_args);
 
-        if(ret > 0){
-            return true;
-        }else{
+        if(ret < 1){
             return false;
         }
 
+        return false;
     }
 
-    private boolean insert_data(String name_table, String[] names_columns, String[] values) {
-
-        db_obj.insert(name_table,);
+    private boolean insert_update_data(String name_table, ContentValues values){
+        return insert_update_data( name_table, null, null, values);
     }
 
-    private boolean update_date() {
+    private boolean insert_update_data(String name_table, String where_clause,
+                                       String[] where_args, ContentValues values) {
 
+        if( (values.size() < 1)  || name_table.isEmpty())
+            return false;
+
+        //insert data
+        long ret_val = db_obj.insert(name_table, null, values);
+
+        if(ret_val < 0) {
+            return false;
+        }
+
+        //update data
+        long ret_val = db_obj.update(name_table, values, where_clause,where_args);
+
+        if(ret_val < 0) {
+            return false;
+        }
+
+
+        return true;
     }
+
 
     private Cursor select_data(){
 
@@ -134,6 +154,7 @@ public class CSQL extends SQLiteOpenHelper {
         }else{
             values.put("value",value);
             id_ret = db.update(name_table,values,"name='"+name+"'",null);
+            db_obj.up
 
         }
         db.close();
