@@ -36,20 +36,18 @@
         android:layout_marginTop="25dp" />
 
     <Button
-        android:id="@+id/btn_other2"
+        android:id="@+id/btn_createDB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Test other 2"
-        android:layout_marginTop="25dp"
-        android:visibility="invisible"/>
+        android:text="Create DB"
+        android:layout_marginTop="25dp"/>
 
     <Button
-        android:id="@+id/btn_other3"
+        android:id="@+id/btn_removeDB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Test other 3"
-        android:layout_marginTop="25dp"
-        android:visibility="invisible"/>
+        android:text="Remove DB"
+        android:layout_marginTop="25dp"/>
 
     <Button
         android:id="@+id/btn_exit"

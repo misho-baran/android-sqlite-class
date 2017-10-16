@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ReativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -11,7 +11,52 @@
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:gravity="center">
+        android:weightSum="1">
+
+        <EditText
+            android:id="@+id/editTxt_userName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:ems="10"
+            android:hint="User name"
+            android:inputType="textPersonName"/>
+
+        <EditText
+            android:id="@+id/editTxt_userPass"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="User passwd"
+            android:inputType="textPersonName"/>
+
+        <EditText
+            android:id="@+id/editTxt_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="Status"
+            android:inputType="textPersonName"
+            android:layout_weight="6.88" />
+
+        <Button
+            android:id="@+id/btn_check"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Check"/>
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Save" />
+
+        <Button
+            android:id="@+id/btn_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Delete" />
 
         <Button
             android:id="@+id/btn_close"
@@ -19,6 +64,7 @@
             android:layout_height="wrap_content"
             android:text="Close"/>
 
+
     </LinearLayout>
 
-</ReativeLayout>
+</RelativeLayout>

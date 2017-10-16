@@ -14,18 +14,21 @@ public class CheckConfigActivity extends AppCompatActivity  implements View.OnCl
     private Button btn_clear = null;
     private Button btn_save = null;
     private Button btn_load = null;
+    private Button btn_delete = null;
     private EditText editTxt_input= null;
     private EditText editTxt_output = null;
+    private EditText editTxt_counter = null;
 
     private void init_component(){
         //init obj component
-        sql_obj = new CSQL(getApplicationContext());
         btn_close = (Button) findViewById(R.id.btn_close);
         btn_clear = (Button) findViewById(R.id.btn_clear);
         btn_save = (Button) findViewById(R.id.btn_save);
         btn_load = (Button) findViewById(R.id.btn_load);
+        btn_delete = (Button) findViewById(R.id.btn_delete);
         editTxt_input = (EditText) findViewById(R.id.editTxt_input);
         editTxt_output = (EditText) findViewById(R.id.editTxt_output);
+        editTxt_counter = (EditText) findViewById(R.id.editTxt_counter);
 
         // settings component
         editTxt_output.setEnabled(false);
@@ -35,6 +38,9 @@ public class CheckConfigActivity extends AppCompatActivity  implements View.OnCl
         btn_clear.setOnClickListener(this);
         btn_save.setOnClickListener(this);
         btn_load.setOnClickListener(this);
+        btn_delete.setOnClickListener(this);
+
+        sql_obj = new CSQL(getApplicationContext());
     }
 
     @Override
@@ -57,30 +63,36 @@ public class CheckConfigActivity extends AppCompatActivity  implements View.OnCl
 
             case R.id.btn_save:
                 String txt_input = editTxt_input.getText().toString();
-                sql_obj.save_config("message",txt_input);
+                sql_obj.config_save("message",txt_input);
                 if(sql_obj.check_sql_error()) {
-                    editTxt_output.setText(sql_obj.get_sql_error());
-                }else {
-                    editTxt_output.setText(txt_input);
                     editTxt_input.setText("");
+                    editTxt_counter.setText("Error: " + sql_obj.get_sql_error());
+                    editTxt_output.setText("");
+                }else {
+                    editTxt_input.setText("");
+                    editTxt_output.setText(txt_input);
                 }
                 break;
 
             case R.id.btn_load:
-                String str_load = sql_obj.load_config("message");
+                String str_load = sql_obj.config_load("message");
                 if(sql_obj.check_sql_error()) {
-                    editTxt_output.setText(sql_obj.get_sql_error());
+                    editTxt_output.setText(str_load);
+                    editTxt_counter.setText("Error: " + sql_obj.get_sql_error());
                 }else{
                     editTxt_output.setText(str_load);
+                    editTxt_counter.setText( "Count rows: " + Long.toString(sql_obj.get_count_row()) );
                 }
+                break;
 
-
-                editTxt_input.setText("");
+            case R.id.btn_delete:
+                sql_obj.config_remove("message");
                 break;
 
             case R.id.btn_clear:
                 editTxt_input.setText("");
                 editTxt_output.setText("");
+                editTxt_counter.setText("");
                 break;
 
             default:

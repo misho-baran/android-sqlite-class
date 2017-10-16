@@ -18,6 +18,8 @@ public class MainActivity extends Activity implements OnClickListener {
     private Button btn_exit = null;
     private Button btn_config = null;
     private Button btn_login = null;
+    private Button btn_createDB = null;
+    private Button btn_removeDB = null;
     private EditText editTxt_info = null;
 
     /*protected Intent intent_checkConfigActivity = null;
@@ -29,10 +31,11 @@ public class MainActivity extends Activity implements OnClickListener {
         setContentView(R.layout.activity_main);
 
         //init obj component
-        sql_obj = new CSQL(getApplicationContext());
         btn_exit = (Button) findViewById(R.id.btn_exit);
         btn_config = (Button) findViewById(R.id.btn_config);
         btn_login = (Button) findViewById(R.id.btn_login);
+        btn_createDB = (Button) findViewById(R.id.btn_createDB);
+        btn_removeDB = (Button) findViewById(R.id.btn_removeDB);
         editTxt_info = (EditText) findViewById(R.id.editTxt_info);
 
 
@@ -51,10 +54,13 @@ public class MainActivity extends Activity implements OnClickListener {
         editTxt_info.setText(s);
 
         // add component to listener
-        btn_exit.setOnClickListener(this);
         btn_config.setOnClickListener(this);
         btn_login.setOnClickListener(this);
+        btn_createDB.setOnClickListener(this);
+        btn_removeDB.setOnClickListener(this);
+        btn_exit.setOnClickListener(this);
 
+        sql_obj = new CSQL(getApplicationContext());
     }
 
     public void onClick(View v) {
@@ -67,8 +73,16 @@ public class MainActivity extends Activity implements OnClickListener {
                 break;
 
             case R.id.btn_login:
-                Intent intent_checkLoginActivity = new Intent(this, CheckLoginActivity.class);
+                Intent intent_checkLoginActivity = new Intent(v.getContext(), CheckLoginActivity.class);
                 startActivity(intent_checkLoginActivity);
+                break;
+
+            case R.id.btn_createDB:
+                sql_obj.create_db();
+                break;
+
+            case R.id.btn_removeDB:
+                sql_obj.delete_db();
                 break;
 
             case R.id.btn_exit:
